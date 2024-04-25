@@ -210,4 +210,4 @@ END;
 $$ LANGUAGE plpgsql;
 
 
--- Path: back/foodrating/foodrating/foodrating/settings.py
+-- Path: back/foodrating/foodrating/foodrating/Rating.sql
