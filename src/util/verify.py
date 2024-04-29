@@ -40,6 +40,11 @@ def verify_last_name(lastname: str) -> None:
             'last name must only contain alphabetical characters.')
 
 
+def verify_password(password: str) -> None:
+    if not len(password):
+        raise UserInputError("no password provided.")
+
+
 def verify_new_password(password: str) -> None:
     if not len(password):
         raise UserInputError("no password provided.")

@@ -1,5 +1,5 @@
-from PyQt5 import QtWidgets, uic
-from src.util.verify import (UserInputError, verify_email)
+from PyQt5 import (QtWidgets, uic)
+from src.util.verify import (UserInputError, verify_email, verify_password)
 import sys
 import os
 
@@ -24,10 +24,16 @@ class LoginWindow(QtWidgets.QMainWindow):
 
         try:
             verify_email(email)
-            if not len(password):
-                raise UserInputError('password not provided.')
+            verify_password(password)
         except UserInputError as e:
             print(e)
+            dlg = QtWidgets.QMessageBox(self)
+            dlg.setWindowTitle("Invalid Input")
+            dlg.setText(str(e))
+            dlg_btn = dlg.exec()
+
+            if dlg_btn == QtWidgets.QMessageBox.Ok:
+                return
 
 
 if __name__ == "__main__":
