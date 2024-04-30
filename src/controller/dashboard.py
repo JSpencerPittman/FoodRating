@@ -1,19 +1,20 @@
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
-from psycopg2.extensions import cursor
+from psycopg2.extensions import connection
 import sys
 import os
 
 
 class DashboardWindow(QtWidgets.QMainWindow):
-    def __init__(self, cursor: cursor):
+    def __init__(self, cnx: connection):
         super(DashboardWindow, self).__init__()
         ui_filepath = os.path.join(
             os.path.dirname(__file__), '../ui/dashboard.ui')
         uic.loadUi(ui_filepath, self)
 
-        self.cursor = cursor
+        self.cnx = cnx
+        self.cursor = self.cnx.cursor()
 
         # Top Food Items
         for x in range(5):
@@ -44,6 +45,9 @@ class DashboardWindow(QtWidgets.QMainWindow):
 
         self.utilLayout.addWidget(UtilityButton("Add", add_cb))
         self.utilLayout.addWidget(UtilityButton("Logout", logout_cb))
+
+    def __del__(self):
+        self.cursor.close()
 
 
 class TopFoodItem(QtWidgets.QWidget):
