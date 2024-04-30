@@ -1,6 +1,19 @@
+from PyQt5 import QtWidgets
+
+
 class UserInputError(Exception):
     def __init__(self, message):
         super(UserInputError, self).__init__(message)
+        self.message = message
+
+    def display_dialog(self):
+        dlg = QtWidgets.QMessageBox()
+        dlg.setWindowTitle("Invalid Input")
+        dlg.setText(str(self.message))
+        dlg_btn = dlg.exec()
+
+        if dlg_btn == QtWidgets.QMessageBox.Ok:
+            return
 
 
 def verify_email(email: str) -> None:
