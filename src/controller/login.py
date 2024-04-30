@@ -1,17 +1,20 @@
 from PyQt5 import (QtWidgets, uic)
 from src.util.verify import (UserInputError, verify_email, verify_password)
+from psycopg2.extensions import connection, cursor
 import sys
 import os
 
 
 class LoginWindow(QtWidgets.QMainWindow):
-    def __init__(self):
+    def __init__(self, cnx: connection):
         super(LoginWindow, self).__init__()
         ui_filepath = os.path.join(os.path.dirname(__file__), '../ui/login.ui')
         uic.loadUi(ui_filepath, self)
 
         # Connect Signals to their corresponding slots.
         self.loginButton.clicked.connect(self.on_clicked_login)
+
+        self.cursor: cursor = cnx.cursor()
 
     def extract_input(self):
         email = self.emailLineEdit.text().strip().lower()
@@ -26,14 +29,30 @@ class LoginWindow(QtWidgets.QMainWindow):
             verify_email(email)
             verify_password(password)
         except UserInputError as e:
-            print(e)
-            dlg = QtWidgets.QMessageBox(self)
-            dlg.setWindowTitle("Invalid Input")
-            dlg.setText(str(e))
-            dlg_btn = dlg.exec()
+            e.display_dialog()
+            return
 
-            if dlg_btn == QtWidgets.QMessageBox.Ok:
-                return
+        if self.validate_credentials(email, password):
+            pass
+        else:
+            err = UserInputError("invalid login.")
+            err.display_dialog()
+            return
+
+    def validate_credentials(self, email: str, password: str) -> bool:
+        query = f"""
+                SELECT COUNT(*)
+                FROM customer
+                WHERE email='{email}' AND password='{password}';
+                """
+
+        self.cursor.execute(query)
+
+        return bool(self.cursor.fetchall()[0][0])
+
+    def __del__(self):
+        super(LoginWindow, self).__del__()
+        self.cursor.close()
 
 
 if __name__ == "__main__":
