@@ -17,8 +17,8 @@ class WindowManager:
         self.cursor = self.cnx.cursor()
 
         self.start_window = StartWindow(self.start_login, self.start_register)
-        self.login_window = LoginWindow(self.cursor, self.start_dashboard)
-        self.register_window = RegisterWindow(self.cursor, self.start_login)
+        self.login_window = LoginWindow(self.cnx, self.start_dashboard)
+        self.register_window = RegisterWindow(self.cnx, self.start_login)
         self.dashboard_window = DashboardWindow(self.cursor)
 
     def start(self) -> None:
@@ -37,6 +37,7 @@ class WindowManager:
         self.dashboard_window.show()
 
     def __del__(self):
+        print("TERMINATED CONNECTION")
         self.cursor.close()
         self.cnx.close()
 
@@ -47,6 +48,4 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     win_man = WindowManager(conn)
     win_man.start()
-    # window = LoginWindow(conn)
-    # window.show()
     sys.exit(app.exec())

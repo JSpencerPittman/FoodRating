@@ -40,7 +40,7 @@ CREATE TABLE rating (
 
 -- Log In
 
-CREATE OR REPLACE FUNCTION valid_user(inp_email VARCHAR(255), inp_password VARCHAR(255))
+CREATE OR REPLACE FUNCTION valid_user(inp_email VARCHAR, inp_password VARCHAR)
 	RETURNS bool
 	LANGUAGE plpgsql
 AS $$
@@ -53,6 +53,33 @@ BEGIN
 	WHERE password=inp_password AND email=inp_email;
 	
 	RETURN matches > 0;
+END; 
+$$;
+
+-- Register
+
+CREATE OR REPLACE FUNCTION user_exists(inp_email VARCHAR)
+	RETURNS bool
+	LANGUAGE plpgsql
+AS $$
+DECLARE
+	matches int;
+BEGIN
+	SELECT COUNT(*)
+	INTO matches
+	FROM customer
+	WHERE email=inp_email;
+	
+	RETURN matches > 0;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION add_user(email VARCHAR, password VARCHAR, fname VARCHAR, mname VARCHAR, lname VARCHAR)
+	RETURNS VOID 
+	LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO customer (email, password, fname, mname, lname) VALUES (email, password, fname, mname, lname);
 END;
 $$;
 

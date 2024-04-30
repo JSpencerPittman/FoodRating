@@ -7,20 +7,20 @@ from src.util.verify import (UserInputError,
                              verify_new_password,
                              verify_password_confirm)
 from typing import Callable
-from psycopg2.extensions import cursor
-import sys
+from psycopg2.extensions import connection
 import os
 
 
 class RegisterWindow(QtWidgets.QMainWindow):
-    def __init__(self, cursor: cursor, login_cb: Callable[[QtWidgets.QMainWindow], None]) -> None:
+    def __init__(self, cnx: connection, login_cb: Callable[[QtWidgets.QMainWindow], None]) -> None:
         super(RegisterWindow, self).__init__()
         ui_filepath = os.path.join(
             os.path.dirname(__file__), '../ui/register.ui')
         uic.loadUi(ui_filepath, self)
 
         # Save connection to the database
-        self.cursor = cursor
+        self.cnx = cnx
+        self.cursor = cnx.cursor()
 
         # Connect Signals to their corresponding slots.
         self.registerButton.clicked.connect(self.on_clicked_register)
@@ -50,8 +50,36 @@ class RegisterWindow(QtWidgets.QMainWindow):
             verify_new_password(password)
             verify_password_confirm(password, password_confirm)
         except UserInputError as e:
-            pass
+            e.display_dialog()
+            return
 
-        # Save New User
+        # Ensure user doesn't already exist
+        if self.user_exists(email):
+            uie = UserInputError('User with this email already exists.')
+            uie.display_dialog()
+            return
+
+        # Create new user
+        self.create_user(email, password, first_name, middle_name, last_name)
 
         self.login_cb(self)
+
+    def user_exists(self, email: str) -> bool:
+        query = f"SELECT user_exists('{email}');"
+
+        self.cursor.execute(query)
+
+        return bool(self.cursor.fetchall()[0][0])
+
+    def create_user(self, email: str, password: str, fname: str, mname: str, lname: str) -> None:
+        query = f"SELECT add_user('{email}','{password}','{
+            fname}','{mname}','{lname}');"
+
+        print(query)
+        self.cursor.execute(query)
+
+        self.cursor.fetchall()
+        self.cnx.commit()
+
+    def __del__(self):
+        self.cursor.close()
