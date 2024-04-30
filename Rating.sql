@@ -35,31 +35,28 @@ CREATE TABLE rating (
     cust_id INTEGER REFERENCES customer(cust_id),
     price DECIMAL,
     rating INTEGER,
-    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    date DATE DEFAULT CURRENT_DATE
 );
 
+-- Log In
 
-
-CREATE OR REPLACE FUNCTION login(email VARCHAR, password VARCHAR)
-RETURNS BOOLEAN AS $$
+CREATE OR REPLACE FUNCTION valid_user(inp_email VARCHAR(255), inp_password VARCHAR(255))
+	RETURNS bool
+	LANGUAGE plpgsql
+AS $$
 DECLARE
-    logged_in BOOLEAN;
-    customer_record RECORD;
+	matches int;
 BEGIN
-    SELECT INTO customer_record * FROM customer WHERE email = login.email;
-    
-    IF customer_record IS NOT NULL AND customer_record.password = login.password THEN
-        logged_in := TRUE;
-    ELSE
-        logged_in := FALSE;
-        RAISE NOTICE 'Failed login';
-    END IF;
-    
-    RETURN logged_in;
+	SELECT COUNT(*)
+	INTO matches
+	FROM customer
+	WHERE password=inp_password AND email=inp_email;
+	
+	RETURN matches > 0;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
-
+-- Other
 
 CREATE OR REPLACE FUNCTION add_food(food_name VARCHAR, company_name VARCHAR, cuisine VARCHAR)
 RETURNS VOID AS $$
@@ -208,6 +205,3 @@ BEGIN
     END IF;
 END;
 $$ LANGUAGE plpgsql;
-
-
--- Path: back/foodrating/foodrating/foodrating/Rating.sql

@@ -45,11 +45,7 @@ class LoginWindow(QtWidgets.QMainWindow):
             return
 
     def validate_credentials(self, email: str, password: str) -> bool:
-        query = f"""
-                SELECT COUNT(*)
-                FROM customer
-                WHERE email='{email}' AND password='{password}';
-                """
+        query = f"SELECT valid_user('{email}', '{password}');"
 
         self.cursor.execute(query)
 
