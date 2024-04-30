@@ -6,19 +6,27 @@ from src.util.verify import (UserInputError,
                              verify_email,
                              verify_new_password,
                              verify_password_confirm)
+from typing import Callable
+from psycopg2.extensions import cursor
 import sys
 import os
 
 
 class RegisterWindow(QtWidgets.QMainWindow):
-    def __init__(self):
+    def __init__(self, cursor: cursor, login_cb: Callable[[QtWidgets.QMainWindow], None]) -> None:
         super(RegisterWindow, self).__init__()
         ui_filepath = os.path.join(
             os.path.dirname(__file__), '../ui/register.ui')
         uic.loadUi(ui_filepath, self)
 
+        # Save connection to the database
+        self.cursor = cursor
+
         # Connect Signals to their corresponding slots.
         self.registerButton.clicked.connect(self.on_clicked_register)
+
+        # Save callback functions from window manager
+        self.login_cb = login_cb
 
     def extract_input(self):
         first_name = self.firstNameLineEdit.text().strip().lower()
@@ -44,9 +52,6 @@ class RegisterWindow(QtWidgets.QMainWindow):
         except UserInputError as e:
             pass
 
+        # Save New User
 
-if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    window = RegisterWindow()
-    window.show()
-    sys.exit(app.exec())
+        self.login_cb(self)

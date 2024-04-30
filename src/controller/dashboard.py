@@ -1,16 +1,19 @@
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
+from psycopg2.extensions import cursor
 import sys
 import os
 
 
 class DashboardWindow(QtWidgets.QMainWindow):
-    def __init__(self):
+    def __init__(self, cursor: cursor):
         super(DashboardWindow, self).__init__()
         ui_filepath = os.path.join(
             os.path.dirname(__file__), '../ui/dashboard.ui')
         uic.loadUi(ui_filepath, self)
+
+        self.cursor = cursor
 
         # Top Food Items
         for x in range(5):
@@ -103,8 +106,8 @@ class UtilityButton(QtWidgets.QPushButton):
         self.clicked.connect(callback)
 
 
-if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    window = DashboardWindow()
-    window.show()
-    sys.exit(app.exec())
+# if __name__ == "__main__":
+#     app = QtWidgets.QApplication(sys.argv)
+#     window = DashboardWindow()
+#     window.show()
+#     sys.exit(app.exec())

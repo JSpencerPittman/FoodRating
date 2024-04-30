@@ -1,12 +1,13 @@
 from PyQt5 import (QtWidgets, uic)
 from src.util.verify import (UserInputError, verify_email, verify_password)
-from psycopg2.extensions import connection, cursor
+from psycopg2.extensions import cursor
+from typing import Callable
 import sys
 import os
 
 
 class LoginWindow(QtWidgets.QMainWindow):
-    def __init__(self, cnx: connection):
+    def __init__(self, cursor: cursor, dashboard_cb: Callable[[QtWidgets.QMainWindow], None]) -> None:
         super(LoginWindow, self).__init__()
         ui_filepath = os.path.join(os.path.dirname(__file__), '../ui/login.ui')
         uic.loadUi(ui_filepath, self)
@@ -14,7 +15,11 @@ class LoginWindow(QtWidgets.QMainWindow):
         # Connect Signals to their corresponding slots.
         self.loginButton.clicked.connect(self.on_clicked_login)
 
-        self.cursor: cursor = cnx.cursor()
+        # Save connection to the database
+        self.cursor = cursor
+
+        # Save callback functions from window manager
+        self.dashboard_cb = dashboard_cb
 
     def extract_input(self):
         email = self.emailLineEdit.text().strip().lower()
@@ -33,7 +38,7 @@ class LoginWindow(QtWidgets.QMainWindow):
             return
 
         if self.validate_credentials(email, password):
-            pass
+            self.dashboard_cb(self)
         else:
             err = UserInputError("invalid login.")
             err.display_dialog()
@@ -53,10 +58,3 @@ class LoginWindow(QtWidgets.QMainWindow):
     def __del__(self):
         super(LoginWindow, self).__del__()
         self.cursor.close()
-
-
-if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    window = LoginWindow()
-    window.show()
-    sys.exit(app.exec())
