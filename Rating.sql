@@ -42,7 +42,7 @@ CREATE TABLE rating (
     date DATE DEFAULT CURRENT_DATE
 );
 
--- Log In
+-- Validation Operations
 
 CREATE OR REPLACE FUNCTION valid_user(inp_email VARCHAR, inp_password VARCHAR)
 	RETURNS bool
@@ -60,7 +60,23 @@ BEGIN
 END; 
 $$;
 
--- Register
+-- Existence Operations
+
+CREATE OR REPLACE FUNCTION company_exists(inp_comp_name VARCHAR)
+	RETURNS bool
+	LANGUAGE plpgsql
+AS $$
+DECLARE
+	matches int;
+BEGIN
+	SELECT COUNT(*)
+	INTO matches
+	FROM company
+	WHERE comp_name=inp_comp_name;
+	
+	RETURN matches > 0;
+END;
+$$;
 
 CREATE OR REPLACE FUNCTION user_exists(inp_email VARCHAR)
 	RETURNS bool
@@ -78,6 +94,8 @@ BEGIN
 END;
 $$;
 
+-- Insertion Operations
+
 CREATE OR REPLACE FUNCTION add_user(email VARCHAR, password VARCHAR, fname VARCHAR, mname VARCHAR, lname VARCHAR)
 	RETURNS VOID 
 	LANGUAGE plpgsql
@@ -87,7 +105,7 @@ BEGIN
 END;
 $$;
 
--- Top Food Items
+-- Select Operations
 
 CREATE OR REPLACE FUNCTION top_food_items(cnt int)
 	RETURNS TABLE(food_name VARCHAR, avg_rating DECIMAL)
@@ -104,8 +122,6 @@ BEGIN
 END;
 $$;
 
--- Top Companies
-
 CREATE OR REPLACE FUNCTION top_companies(cnt int)
 	RETURNS TABLE(comp_name VARCHAR, avg_rating DECIMAL)
 	LANGUAGE plpgsql
@@ -121,8 +137,6 @@ BEGIN
 	LIMIT cnt;
 END;
 $$;
-
--- Table Entries
 
 CREATE OR REPLACE FUNCTION food_entries()
 	RETURNS TABLE(food_name VARCHAR, comp_name VARCHAR, num_ratings BIGINT, avg_rating DECIMAL)
