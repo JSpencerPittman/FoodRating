@@ -2,8 +2,11 @@ from PyQt5 import QtWidgets, uic
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 from psycopg2.extensions import connection
-import sys
 import os
+from typing import List, Tuple
+
+NUM_TOP_FOOD_ITEMS = 5
+NUM_TOP_COMPANIES = 5
 
 
 class DashboardWindow(QtWidgets.QMainWindow):
@@ -16,27 +19,7 @@ class DashboardWindow(QtWidgets.QMainWindow):
         self.cnx = cnx
         self.cursor = self.cnx.cursor()
 
-        # Top Food Items
-        for x in range(5):
-            self.topFoodItemsLayout.addWidget(
-                TopFoodItem('5 Layer Burrito', 4.4))
-
-        # Top Companies
-        for x in range(10):
-            self.topCompaniesLayout.addWidget(
-                TopCompany('Taco Bell', 4.4))
-
-        # Food Entries
-        self.foodEntriesTable.setRowCount(10)
-        for x in range(10):
-            self.foodEntriesTable.setItem(
-                x, 0, QtWidgets.QTableWidgetItem("4.4"))
-            self.foodEntriesTable.setItem(
-                x, 1, QtWidgets.QTableWidgetItem("146"))
-            self.foodEntriesTable.setItem(
-                x, 2, QtWidgets.QTableWidgetItem("Chalupa"))
-            self.foodEntriesTable.setItem(
-                x, 3, QtWidgets.QTableWidgetItem("Taco Bell"))
+        self.populate_table()
 
         # Utilities
 
@@ -45,6 +28,53 @@ class DashboardWindow(QtWidgets.QMainWindow):
 
         self.utilLayout.addWidget(UtilityButton("Add", add_cb))
         self.utilLayout.addWidget(UtilityButton("Logout", logout_cb))
+
+    def populate_table(self):
+        # Request data from the table
+        top_food_items_query = f"SELECT top_food_items({NUM_TOP_FOOD_ITEMS});"
+        top_companies_query = f"SELECT top_companies({NUM_TOP_COMPANIES});"
+        food_entries_query = f"SELECT food_entries();"
+
+        self.cursor.execute(top_food_items_query)
+        top_food_items = self.parse_table(self.cursor.fetchall())
+
+        self.cursor.execute(top_companies_query)
+        top_companies = self.parse_table(self.cursor.fetchall())
+
+        self.cursor.execute(food_entries_query)
+        food_entries = self.parse_table(self.cursor.fetchall())
+
+        # Populate top food items
+        for row in top_food_items:
+            food_name, rating = row[0], round(float(row[1]), 1)
+            self.topFoodItemsLayout.addWidget(
+                TopFoodItem(food_name, rating))
+
+        # Populate top companies
+        for row in top_companies:
+            comp_name, rating = row[0], round(float(row[1]), 1)
+            self.topCompaniesLayout.addWidget(
+                TopCompany(comp_name, rating))
+
+        # Populate food entries
+        self.foodEntriesTable.setRowCount(len(food_entries))
+        for entry_idx, row in enumerate(food_entries):
+            food_name, comp_name, num_ratings, avg_rating = row
+            avg_rating = str(round(float(avg_rating), 1))
+            self.foodEntriesTable.setItem(
+                entry_idx, 0, QtWidgets.QTableWidgetItem(avg_rating))
+            self.foodEntriesTable.setItem(
+                entry_idx, 1, QtWidgets.QTableWidgetItem(num_ratings))
+            self.foodEntriesTable.setItem(
+                entry_idx, 2, QtWidgets.QTableWidgetItem(food_name))
+            self.foodEntriesTable.setItem(
+                entry_idx, 3, QtWidgets.QTableWidgetItem(comp_name))
+
+    @ staticmethod
+    def parse_table(table: List[Tuple[str]]) -> List[List[str]]:
+        table = [[v.replace('"', '')
+                  for v in row[0][1:-1].split(',')] for row in table]
+        return table
 
     def __del__(self):
         self.cursor.close()
@@ -108,10 +138,3 @@ class UtilityButton(QtWidgets.QPushButton):
 
         self.setText(text)
         self.clicked.connect(callback)
-
-
-# if __name__ == "__main__":
-#     app = QtWidgets.QApplication(sys.argv)
-#     window = DashboardWindow()
-#     window.show()
-#     sys.exit(app.exec())

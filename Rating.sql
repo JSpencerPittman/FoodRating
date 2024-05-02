@@ -87,6 +87,58 @@ BEGIN
 END;
 $$;
 
+-- Top Food Items
+
+CREATE OR REPLACE FUNCTION top_food_items(cnt int)
+	RETURNS TABLE(food_name VARCHAR, avg_rating DECIMAL)
+	LANGUAGE plpgsql
+AS $$
+BEGIN
+	RETURN QUERY
+	SELECT F.food_name, AVG(rating) AS avg_rating
+	FROM food F
+	INNER JOIN rating R USING(food_id)
+	GROUP BY food_id
+	ORDER BY avg_rating DESC
+	LIMIT cnt;
+END;
+$$;
+
+-- Top Companies
+
+CREATE OR REPLACE FUNCTION top_companies(cnt int)
+	RETURNS TABLE(comp_name VARCHAR, avg_rating DECIMAL)
+	LANGUAGE plpgsql
+AS $$
+BEGIN
+	RETURN QUERY
+	SELECT tC.comp_name, AVG(rating) AS avg_rating
+	FROM company tC
+	INNER JOIN site tS USING(company_id)
+	INNER JOIN rating tR using(site_id)
+	GROUP BY company_id
+	ORDER BY avg_rating DESC
+	LIMIT cnt;
+END;
+$$;
+
+-- Table Entries
+
+CREATE OR REPLACE FUNCTION food_entries()
+	RETURNS TABLE(food_name VARCHAR, comp_name VARCHAR, num_ratings BIGINT, avg_rating DECIMAL)
+	LANGUAGE plpgsql
+AS $$
+BEGIN
+	RETURN QUERY
+	SELECT tF.food_name, tC.comp_name, COUNT(*) AS num_ratings, AVG(rating) AS avg_rating 
+	FROM food tF
+	INNER JOIN company tC USING(company_id)
+	INNER JOIN rating USING(food_id)
+	GROUP BY food_id, tF.food_name, tC.comp_name
+	ORDER BY tF.food_name;
+END;
+$$;
+
 -- Other
 
 CREATE OR REPLACE FUNCTION add_food(food_name VARCHAR, company_name VARCHAR, cuisine VARCHAR)
