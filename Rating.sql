@@ -1,40 +1,44 @@
 CREATE TABLE customer (
     cust_id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE,
-    password VARCHAR(255),
-    fname VARCHAR(255),
+    psswd VARCHAR(255) NOT NULL,
+    fname VARCHAR(255) NOT NULL,
     mname VARCHAR(255),
-    lname VARCHAR(255)
+    lname VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE company (
-    company_no SERIAL PRIMARY KEY,
-    name VARCHAR(255) UNIQUE
+    company_id SERIAL PRIMARY KEY,
+    comp_name VARCHAR(255) UNIQUE,
+    comp_type VARCHAR(255),
+    CHECK (comp_type IS NULL OR comp_type IN ('Restaurant','Fast Food'))
 );
 
 CREATE TABLE site (
     site_id SERIAL PRIMARY KEY,
-    company_no INTEGER REFERENCES company(company_no),
-    state VARCHAR(255),
+    company_id INTEGER REFERENCES company(company_id),
+    state VARCHAR(255) NOT NULL,
     street VARCHAR(255),
-    address VARCHAR(255),
-    zip VARCHAR(10)
+    addr_num INT,
+    zip INT NOT NULL
 );
 
 CREATE TABLE food (
-    food_no SERIAL PRIMARY KEY,
-    company_no INTEGER REFERENCES company(company_no),
-    name VARCHAR(255),
+    food_id SERIAL PRIMARY KEY,
+    company_id INTEGER REFERENCES company(company_id),
+    food_name VARCHAR(255) NOT NULL,
     cuisine VARCHAR(255)
+	CHECK (cuisine IS NULL OR cuisine IN ('American','Italian','Mexican','Ice Cream'))
 );
+
 
 CREATE TABLE rating (
     rating_id SERIAL PRIMARY KEY,
-    food_no INTEGER REFERENCES food(food_no),
+    food_id INTEGER REFERENCES food(food_id),
     site_id INTEGER REFERENCES site(site_id),
     cust_id INTEGER REFERENCES customer(cust_id),
     price DECIMAL,
-    rating INTEGER,
+    rating INTEGER NOT NULL,
     date DATE DEFAULT CURRENT_DATE
 );
 
