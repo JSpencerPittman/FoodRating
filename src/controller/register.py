@@ -75,7 +75,6 @@ class RegisterWindow(QtWidgets.QMainWindow):
         query = f"SELECT add_user('{email}','{password}','{
             fname}','{mname}','{lname}');"
 
-        print(query)
         self.cursor.execute(query)
 
         self.cursor.fetchall()

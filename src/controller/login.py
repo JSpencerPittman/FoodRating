@@ -2,7 +2,6 @@ from PyQt5 import (QtWidgets, uic)
 from src.util.verify import (UserInputError, verify_email, verify_password)
 from psycopg2.extensions import connection
 from typing import Callable
-import sys
 import os
 
 
