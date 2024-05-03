@@ -37,19 +37,20 @@ class LoginWindow(QtWidgets.QMainWindow):
             e.display_dialog()
             return
 
-        if self.validate_credentials(email, password):
-            self.dashboard_cb(self)
+        cust_id = self.validate_credentials(email, password)
+        if cust_id != -1:
+            self.dashboard_cb(self, cust_id)
         else:
             err = UserInputError("invalid login.")
             err.display_dialog()
             return
 
-    def validate_credentials(self, email: str, password: str) -> bool:
+    def validate_credentials(self, email: str, password: str) -> int:
         query = f"SELECT valid_user('{email}', '{password}');"
 
         self.cursor.execute(query)
 
-        return bool(self.cursor.fetchall()[0][0])
+        return int(self.cursor.fetchall()[0][0])
 
     def __del__(self):
         self.cursor.close()

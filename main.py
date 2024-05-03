@@ -9,6 +9,7 @@ from src.controller.start import StartWindow
 from src.controller.login import LoginWindow
 from src.controller.register import RegisterWindow
 from src.controller.dashboard import DashboardWindow
+from src.controller.rating import RatingWindow
 
 
 class WindowManager:
@@ -19,7 +20,7 @@ class WindowManager:
         self.start_window = StartWindow(self.start_login, self.start_register)
         self.login_window = LoginWindow(self.cnx, self.start_dashboard)
         self.register_window = RegisterWindow(self.cnx, self.start_login)
-        self.dashboard_window = DashboardWindow(self.cursor)
+        # self.dashboard_window = DashboardWindow(self.cursor)
 
     def start(self) -> None:
         self.start_window.show()
@@ -32,8 +33,9 @@ class WindowManager:
         wfrom.close()
         self.register_window.show()
 
-    def start_dashboard(self, wfrom: QtWidgets.QMainWindow) -> None:
+    def start_dashboard(self, wfrom: QtWidgets.QMainWindow, cust_id: int) -> None:
         wfrom.close()
+        self.dashboard_window = DashboardWindow(self.cnx, cust_id)
         self.dashboard_window.show()
 
     def __del__(self):
@@ -48,4 +50,8 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     win_man = WindowManager(conn)
     win_man.start()
+    # dash = DashboardWindow(conn, 1)
+    # dash.show()
+    # rate = RatingWindow(conn)
+    # rate.show()
     sys.exit(app.exec())

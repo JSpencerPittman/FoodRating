@@ -60,7 +60,8 @@ class RegisterWindow(QtWidgets.QMainWindow):
             return
 
         # Create new user
-        self.create_user(email, password, first_name, middle_name, last_name)
+        self.create_user(
+            email, password, first_name, middle_name, last_name)
 
         self.login_cb(self)
 

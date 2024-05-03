@@ -45,18 +45,22 @@ CREATE TABLE rating (
 -- Validation Operations
 
 CREATE OR REPLACE FUNCTION valid_user(inp_email VARCHAR, inp_password VARCHAR)
-	RETURNS bool
+	RETURNS int
 	LANGUAGE plpgsql
 AS $$
 DECLARE
-	matches int;
+	val_cust_id int;
 BEGIN
-	SELECT COUNT(*)
-	INTO matches
+	SELECT cust_id
+	INTO val_cust_id
 	FROM customer
-	WHERE password=inp_password AND email=inp_email;
+	WHERE psswd=inp_password AND email=inp_email;
 	
-	RETURN matches > 0;
+	IF (val_cust_id IS NULL) THEN
+		val_cust_id = -1;
+	END IF;
+	
+	RETURN val_cust_id;
 END; 
 $$;
 
@@ -152,12 +156,23 @@ $$;
 
 -- Insertion Operations
 
-CREATE OR REPLACE FUNCTION add_user(email VARCHAR, password VARCHAR, fname VARCHAR, mname VARCHAR, lname VARCHAR)
-	RETURNS VOID 
+DROP FUNCTION add_user;
+
+CREATE OR REPLACE FUNCTION add_user(inp_email VARCHAR, inp_psswd VARCHAR, inp_fname VARCHAR, inp_mname VARCHAR, inp_lname VARCHAR)
+	RETURNS INT 
 	LANGUAGE plpgsql
 AS $$
+DECLARE
+	new_cust_id INT;
 BEGIN
-    INSERT INTO customer (email, password, fname, mname, lname) VALUES (email, password, fname, mname, lname);
+    INSERT INTO customer (email, psswd, fname, mname, lname) VALUES (inp_email, inp_psswd, inp_fname, inp_mname, inp_lname);
+	
+	SELECT cust_id
+	INTO new_cust_id
+	FROM customer
+	WHERE email=inp_email;
+	
+	RETURN new_cust_id;
 END;
 $$;
 
