@@ -35,7 +35,7 @@ class DashboardWindow(QtWidgets.QMainWindow):
 
     def finished_rating(self):
         self.show()
-        self.rating.hide()
+        self.rating.close()
 
     def logout_cb(self): return print("LOGGING OUT")
 

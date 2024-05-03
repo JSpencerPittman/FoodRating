@@ -178,7 +178,6 @@ class AddSiteWidget(QtWidgets.QWidget):
 
         self.cursor.execute(query)
 
-        print(query)
         site_id = int(self.cursor.fetchall()[0][0])
         self.cnx.commit()
 
@@ -210,7 +209,7 @@ class AddFoodWidget(QtWidgets.QWidget):
         self.cuisines_lay.itemAt(
             len(self.cuisines)-1).widget().setChecked(True)
 
-        self.comp_type_gb.setLayout(self.cuisines_lay)
+        self.cuisines_gb.setLayout(self.cuisines_lay)
 
         # Submit button
         self.submit_bttn = QtWidgets.QPushButton("Submit")
@@ -219,7 +218,7 @@ class AddFoodWidget(QtWidgets.QWidget):
         # Main Layout
         self.add_food_lay = QtWidgets.QVBoxLayout()
         self.add_food_lay.addWidget(self.name_led)
-        self.add_food_lay.addWidget(self.comp_type_gb)
+        self.add_food_lay.addWidget(self.cuisines_gb)
         self.add_food_lay.addWidget(self.submit_bttn)
 
         self.setLayout(self.add_food_lay)
@@ -250,14 +249,14 @@ class AddFoodWidget(QtWidgets.QWidget):
 
         self.create_cb(food_id)
 
-    def site_exists(self, food_name):
+    def food_exists(self, food_name):
         query = f"SELECT food_exists({self.comp_id}, '{food_name}');"
 
         self.cursor.execute(query)
 
         return bool(self.cursor.fetchall()[0][0])
 
-    def create_site(self, food_name, cuisine):
+    def create_food(self, food_name, cuisine):
         query = f"SELECT add_food({self.comp_id},'{food_name}', '{cuisine}');"
 
         self.cursor.execute(query)
@@ -273,7 +272,7 @@ class AddFoodWidget(QtWidgets.QWidget):
 
 class AddRatingWidget(QtWidgets.QWidget):
     def __init__(self, cnx: connection, create_cb: Callable[[None], None], food_id: int, site_id: int, cust_id: int):
-        super(AddSiteWidget, self).__init__()
+        super(AddRatingWidget, self).__init__()
 
         self.cnx = cnx
         self.cursor = self.cnx.cursor()
@@ -338,7 +337,7 @@ class AddRatingWidget(QtWidgets.QWidget):
 
         return bool(self.cursor.fetchall()[0][0])
 
-    def create_site(self, price, rating):
+    def create_rating(self, price, rating):
         price, rating = self.format_for_query(price, rating)
         query = f"""SELECT add_rating({self.food_id}, {self.site_id}, {
             self.cust_id}, {price}, {rating})"""

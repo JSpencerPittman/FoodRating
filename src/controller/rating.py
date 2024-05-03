@@ -80,7 +80,8 @@ class RatingWindow(QtWidgets.QMainWindow):
 
         self.srch_sites.deleteLater()
 
-        self.cursor.execute(f"SELECT * FROM food WHERE site_id={site_id}")
+        self.cursor.execute(
+            f"SELECT * FROM food WHERE company_id={self.comp_id}")
         foods = self.cursor.fetchall()
 
         food_ids = [row[0] for row in foods]
