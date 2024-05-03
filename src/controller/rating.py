@@ -15,32 +15,63 @@ class RatingWindow(QtWidgets.QMainWindow):
 
         self.cnx = cnx
 
-        # Add Search Widget
+        # Add Search Widgets
         self.srch_comp = SearchWidget(
-            ["Taco Bell", "KFC", "Mickeys", "Barbie", "Oppenheimer"], self.comp_doesnt_exist)
+            ["Taco Bell", "KFC", "Mickeys", "Barbie", "Oppenheimer"], self.comp_doesnt_exist, self.comp_submitted)
 
-        # Add Company
+        # self.srch_sites = SearchWidget(
+        #     ["Site1", "Site2"], self.site_doesnt_exist, self.site_submitted)
+        # self.srch_sites.hide()
+
+        # Add Widgets
         self.add_comp = AddCompanyWidget(self.cnx, self.comp_created_cb)
         self.add_comp.hide()
+
+        # self.add_site = AddSiteWidget()
+        # self.add_site.hide()
+
+        # self.add_rating = AddRatingWidget()
+        # self.add_rating.hide()
 
         # Main Layout for this widget
         self.main_layout = self.centralWidget.layout()
         self.main_layout.addWidget(self.srch_comp)
         self.main_layout.addWidget(self.add_comp)
 
+        # Save data
+        self.comp_id = -1
+        self.site_id = -1
+
     def comp_doesnt_exist(self):
         self.srch_comp.deleteLater()
         self.add_comp.show()
 
-    def comp_created_cb(self, comp_name: str):
-        print("CREATED ", comp_name)
+    def site_doesnt_exist(self):
+        self.srch_site.deleteLater()
+        self.add_site.show()
+
+    def comp_submitted(self):
+        pass
+
+    def site_submitted(self):
+        pass
+
+    def comp_created_cb(self):
+        pass
+
+    def site_created_cb(self):
+        pass
+
+    def rate_created_cb(self):
+        pass
 
 
 class SearchWidget(QtWidgets.QWidget):
-    def __init__(self, contents: List[str], not_here_cb: Callable[[None], None]):
+    def __init__(self, contents: List[str], not_here_cb: Callable[[None], None], submit_cb: Callable[[None], None]):
         super(SearchWidget, self).__init__()
 
         self.contents = contents
+        self.submit_cb = submit_cb
 
         # Searching line edit
         self.search_led = QtWidgets.QLineEdit()
@@ -89,6 +120,8 @@ class SearchWidget(QtWidgets.QWidget):
         except UserInputError as e:
             e.display_dialog()
             return
+
+        self.submit_cb(self.search_led.text())
 
 
 # class AddCompanyWidget(QtWidgets.QWidget):
