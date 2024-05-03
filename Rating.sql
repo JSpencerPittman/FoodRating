@@ -62,22 +62,6 @@ $$;
 
 -- Existence Operations
 
-CREATE OR REPLACE FUNCTION company_exists(inp_comp_name VARCHAR)
-	RETURNS bool
-	LANGUAGE plpgsql
-AS $$
-DECLARE
-	matches int;
-BEGIN
-	SELECT COUNT(*)
-	INTO matches
-	FROM company
-	WHERE comp_name=inp_comp_name;
-	
-	RETURN matches > 0;
-END;
-$$;
-
 CREATE OR REPLACE FUNCTION user_exists(inp_email VARCHAR)
 	RETURNS bool
 	LANGUAGE plpgsql
@@ -94,6 +78,78 @@ BEGIN
 END;
 $$;
 
+
+CREATE OR REPLACE FUNCTION company_exists(inp_comp_name VARCHAR)
+	RETURNS bool
+	LANGUAGE plpgsql
+AS $$
+DECLARE
+	matches int;
+BEGIN
+	SELECT COUNT(*)
+	INTO matches
+	FROM company
+	WHERE comp_name=inp_comp_name;
+	
+	RETURN matches > 0;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION site_exists(inp_comp_id INT, inp_state VARCHAR, inp_street VARCHAR, inp_addr_num INT, inp_zip INT)
+	RETURNS bool
+	LANGUAGE plpgsql
+AS $$
+DECLARE
+	matches int;
+BEGIN
+	SELECT COUNT(*)
+	INTO matches
+	FROM site
+	WHERE company_id=inp_comp_id AND
+		  state=inp_state AND
+		  street IS NOT DISTINCT FROM inp_street AND
+		  addr_num IS NOT DISTINCT FROM inp_addr_num AND
+		  zip=inp_zip;
+	
+	RETURN matches > 0;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION food_exists(inp_comp_id INT, inp_food_name VARCHAR)
+	RETURNS bool
+	LANGUAGE plpgsql
+AS $$
+DECLARE
+	matches int;
+BEGIN	  
+	SELECT COUNT(*)
+	INTO matches
+	FROM food
+	WHERE company_id=inp_comp_id AND
+		food_name=inp_food_name;
+	
+	RETURN matches > 0;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION rating_exists(inp_food_id INT, inp_site_id INT, inp_cust_id INT)
+	RETURNS bool
+	LANGUAGE plpgsql
+AS $$
+DECLARE
+	matches int;
+BEGIN	  
+	SELECT COUNT(*)
+	INTO matches
+	FROM rating
+	WHERE food_id=inp_food_id AND
+		site_id=inp_site_id AND
+		cust_id=inp_cust_id;
+	
+	RETURN matches > 0;
+END;
+$$;
+
 -- Insertion Operations
 
 CREATE OR REPLACE FUNCTION add_user(email VARCHAR, password VARCHAR, fname VARCHAR, mname VARCHAR, lname VARCHAR)
@@ -104,6 +160,91 @@ BEGIN
     INSERT INTO customer (email, password, fname, mname, lname) VALUES (email, password, fname, mname, lname);
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION add_company(inp_comp_name VARCHAR, inp_comp_type VARCHAR)
+    RETURNS INT
+    LANGUAGE 'plpgsql'
+AS $$
+DECLARE 
+	actual_comp_type VARCHAR;
+	new_comp_id INT;
+BEGIN
+	IF inp_comp_type = 'Other' THEN
+		actual_comp_type = NULL;
+	ELSE
+		actual_comp_type = inp_comp_type;
+	END IF;
+    
+	INSERT INTO company (comp_name, comp_type) VALUES
+	(inp_comp_name, actual_comp_type);
+	
+	SELECT company_id
+	INTO new_comp_id
+	FROM company
+	WHERE comp_name=inp_comp_name;
+	
+	RETURN new_comp_id;
+END $$;
+
+CREATE OR REPLACE FUNCTION add_site(inp_comp_id INT, inp_state VARCHAR, inp_street VARCHAR, inp_addr_num INT, inp_zip INT)
+    RETURNS INT
+    LANGUAGE 'plpgsql'
+AS $$
+DECLARE 
+	new_site_id INT;
+BEGIN
+	INSERT INTO site (company_id, state, street, addr_num, zip) VALUES
+	(inp_comp_id, inp_state, inp_street, inp_addr_num, inp_zip);
+	
+	SELECT site_id
+	INTO new_site_id
+	FROM site
+	WHERE company_id=inp_comp_id AND
+		  state=inp_state AND
+		  street IS NOT DISTINCT FROM inp_street AND
+		  addr_num IS NOT DISTINCT FROM inp_addr_num AND
+		  zip=inp_zip;
+	
+	RETURN new_site_id;
+END $$;
+
+
+CREATE OR REPLACE FUNCTION add_food(inp_comp_id INT, inp_food_name VARCHAR, inp_cuisine VARCHAR)
+    RETURNS INT
+    LANGUAGE 'plpgsql'
+AS $$
+DECLARE 
+	actual_cusine VARCHAR;
+	new_food_id INT;
+BEGIN
+	IF inp_cuisine = 'Other' THEN
+		actual_cusine = NULL;
+	ELSE
+		actual_cusine = inp_cuisine;
+	END IF;
+    
+	INSERT INTO food (company_id, food_name, cuisine) VALUES
+	(inp_comp_id, inp_food_name, inp_cuisine);
+	
+	SELECT food_id
+	INTO new_food_id
+	FROM food
+	WHERE company_id=inp_comp_id AND
+		food_name=inp_food_name AND
+		cuisine IS NOT DISTINCT FROM inp_cuisine;
+	
+	RETURN new_food_id;
+END $$;
+
+CREATE OR REPLACE FUNCTION add_rating(inp_food_id INT, inp_site_id INT, inp_cust_id INT, price DECIMAL, rating INT)
+    RETURNS VOID
+    LANGUAGE 'plpgsql'
+AS $$
+BEGIN
+	INSERT INTO rating (food_id, site_id, cust_id, price, rating) VALUES
+	(inp_food_id, inp_site_id, inp_cust_id, price, rating);
+END $$;
+
 
 -- Select Operations
 
@@ -152,153 +293,3 @@ BEGIN
 	ORDER BY tF.food_name;
 END;
 $$;
-
--- Other
-
-CREATE OR REPLACE FUNCTION add_food(food_name VARCHAR, company_name VARCHAR, cuisine VARCHAR)
-RETURNS VOID AS $$
-DECLARE
-    food_no INTEGER;
-    company_no INTEGER;
-BEGIN
-    SELECT INTO food_no MAX(food_no) + 1 FROM food;
-    SELECT INTO company_no company_no FROM company WHERE name = add_food.company_name;
-    
-    INSERT INTO food (food_no, company_no, name, cuisine) VALUES (food_no, company_no, food_name, cuisine);
-END;
-$$ LANGUAGE plpgsql;
-
-
-
-CREATE OR REPLACE FUNCTION add_company(company_name VARCHAR)
-RETURNS VOID AS $$
-DECLARE
-    company_no INTEGER;
-BEGIN
-    SELECT INTO company_no MAX(company_no) + 1 FROM company;
-    
-    INSERT INTO company (company_no, name) VALUES (company_no, company_name);
-END;
-$$ LANGUAGE plpgsql;
-
-
-
-CREATE OR REPLACE FUNCTION add_site(company_name VARCHAR, state VARCHAR, street VARCHAR, address VARCHAR, zip VARCHAR)
-RETURNS VOID AS $$
-DECLARE
-    company_no INTEGER;
-    site_id INTEGER;
-BEGIN
-    SELECT INTO company_no company_no FROM company WHERE name = add_site.company_name;
-    
-    IF company_no IS NULL THEN
-        RAISE EXCEPTION 'Company not found';
-    END IF;
-    
-    SELECT INTO site_id MAX(site_id) + 1 FROM site;
-    
-    INSERT INTO site (site_id, company_no, state, street, address, zip) VALUES (site_id, company_no, state, street, address, zip);
-END;
-$$ LANGUAGE plpgsql;
-
-
-
-CREATE OR REPLACE FUNCTION add_rating(comp_name VARCHAR, food_name VARCHAR, price DECIMAL, rating INTEGER)
-RETURNS VOID AS $$
-DECLARE
-    site_id INTEGER;
-    comp_no INTEGER;
-    food_no INTEGER;
-    cust_id INTEGER;
-    rating_id INTEGER;
-BEGIN
-    -- Check if user is logged in
-    IF NOT logged_in() THEN
-        RAISE EXCEPTION 'User not logged in';
-    END IF;
-
-    SELECT INTO comp_no company_no FROM company WHERE name = add_rating.comp_name;
-    
-    IF comp_no IS NULL THEN
-        RAISE EXCEPTION 'Company not found';
-    END IF;
-    
-    -- Select the site with the smallest ID
-    SELECT INTO site_id MIN(site_id) FROM site WHERE company_no = comp_no;
-    
-    IF site_id IS NULL THEN
-        RAISE EXCEPTION 'Site not found';
-    END IF;
-    
-    SELECT INTO food_no food_no FROM food WHERE name = add_rating.food_name;
-    
-    IF food_no IS NULL THEN
-        RAISE EXCEPTION 'Food not found';
-    END IF;
-    
-    SELECT INTO cust_id cust_no FROM customer WHERE email = <retrieve from session>;
-    
-    SELECT INTO rating_id MAX(rating_id) + 1 FROM rating;
-    
-    INSERT INTO rating (rating_id, food_no, site_id, cust_id, price, rating) VALUES (rating_id, food_no, site_id, cust_id, price, rating);
-END;
-$$ LANGUAGE plpgsql;
-
-
-CREATE OR REPLACE FUNCTION add_account(email VARCHAR, password VARCHAR, fname VARCHAR, mname VARCHAR, lname VARCHAR)
-RETURNS VOID AS $$
-DECLARE
-    cust_id INTEGER;
-BEGIN
-    SELECT INTO cust_id MAX(cust_id) + 1 FROM customer;
-    
-    INSERT INTO customer (cust_id, email, password, fname, mname, lname) VALUES (cust_id, email, password, fname, mname, lname);
-END;
-$$ LANGUAGE plpgsql;
-
-
-
-CREATE OR REPLACE FUNCTION change_password(email VARCHAR, new_password VARCHAR)
-RETURNS VOID AS $$
-DECLARE
-    user_record RECORD;
-BEGIN
-    SELECT INTO user_record * FROM customer WHERE email = change_password.email;
-    
-    IF user_record IS NULL THEN
-        RAISE EXCEPTION 'User does not exist';
-    END IF;
-    
-    IF new_password = user_record.password THEN
-        RAISE EXCEPTION 'New password cannot be the same as the old password';
-    END IF;
-    
-    UPDATE customer SET password = new_password WHERE email = change_password.email;
-END;
-$$ LANGUAGE plpgsql;
-
-
-
-CREATE OR REPLACE FUNCTION average_rating(arg_type VARCHAR, arg_value VARCHAR)
-RETURNS DECIMAL AS $$
-DECLARE
-    rating_sum DECIMAL;
-    rating_count INTEGER;
-BEGIN
-    IF arg_type = 'company' THEN
-        SELECT INTO rating_sum SUM(rating) FROM rating WHERE company = arg_value;
-        SELECT INTO rating_count COUNT(rating) FROM rating WHERE company = arg_value;
-        
-        RETURN rating_sum / rating_count;
-        
-    ELSEIF arg_type = 'food' THEN
-        SELECT INTO rating_sum SUM(rating) FROM rating WHERE food = arg_value;
-        SELECT INTO rating_count COUNT(rating) FROM rating WHERE food = arg_value;
-        
-        RETURN rating_sum / rating_count;
-        
-    ELSE
-        RAISE EXCEPTION 'Invalid argument type';
-    END IF;
-END;
-$$ LANGUAGE plpgsql;

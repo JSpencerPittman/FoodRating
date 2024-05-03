@@ -2,7 +2,7 @@ from psycopg2.extensions import connection, cursor
 from PyQt5 import QtWidgets, uic
 from typing import List, Callable
 from src.util.verify import UserInputError
-from src.controller.add import AddCompanyWidget
+from src.controller.add import AddCompanyWidget, AddSiteWidget
 import os
 
 
@@ -14,62 +14,77 @@ class RatingWindow(QtWidgets.QMainWindow):
         uic.loadUi(ui_filepath, self)
 
         self.cnx = cnx
+        self.cursor = self.cnx.cursor()
 
-        # Add Search Widgets
+        # Company Search Widget
+        self.cursor.execute("SELECT company_id, comp_name FROM company;")
+        companies = self.cursor.fetchall()
+        comp_ids = [row[0] for row in companies]
+        comp_names = [row[1] for row in companies]
         self.srch_comp = SearchWidget(
-            ["Taco Bell", "KFC", "Mickeys", "Barbie", "Oppenheimer"], self.comp_doesnt_exist, self.comp_submitted)
-
-        # self.srch_sites = SearchWidget(
-        #     ["Site1", "Site2"], self.site_doesnt_exist, self.site_submitted)
-        # self.srch_sites.hide()
-
-        # Add Widgets
-        self.add_comp = AddCompanyWidget(self.cnx, self.comp_created_cb)
-        self.add_comp.hide()
-
-        # self.add_site = AddSiteWidget()
-        # self.add_site.hide()
-
-        # self.add_rating = AddRatingWidget()
-        # self.add_rating.hide()
+            comp_ids, comp_names, self.comp_doesnt_exist, self.comp_submitted)
 
         # Main Layout for this widget
         self.main_layout = self.centralWidget.layout()
         self.main_layout.addWidget(self.srch_comp)
-        self.main_layout.addWidget(self.add_comp)
 
         # Save data
-        self.comp_id = -1
-        self.site_id = -1
+        self.comp_id = None
 
+    # Company
     def comp_doesnt_exist(self):
         self.srch_comp.deleteLater()
-        self.add_comp.show()
+
+        # Add Company Widget
+        self.add_comp = AddCompanyWidget(self.cnx, self.comp_created_cb)
+        self.main_layout.addWidget(self.add_comp)
+
+    def comp_submitted(self, comp_id: int):
+        self.comp_id = comp_id
+
+        self.srch_comp.deleteLater()
+
+        self.cursor.execute(f"SELECT * FROM site WHERE company_id={comp_id}")
+        sites = self.cursor.fetchall()
+
+        site_ids = [row[0] for row in sites]
+        print(sites)
+        locations = []
+        for row in sites:
+            locations.append(f"{row[2]}, {row[3]} {row[4]} {row[5]}")
+
+        self.srch_sites = SearchWidget(
+            site_ids, locations, self.site_doesnt_exist, self.site_submitted)
+        self.main_layout.addWidget(self.srch_sites)
+
+    def comp_created_cb(self, comp_id: int):
+        self.comp_id = comp_id
+
+        self.add_comp.deleteLater()
+
+        # Add Site Widget
+        self.add_site = AddSiteWidget(
+            self.cnx, self.site_created_cb, self.comp_id)
+        self.main_layout.addWidget(self.add_site)
 
     def site_doesnt_exist(self):
-        self.srch_site.deleteLater()
-        self.add_site.show()
-
-    def comp_submitted(self):
         pass
 
-    def site_submitted(self):
+    def site_submitted(self, site_id: int):
         pass
 
-    def comp_created_cb(self):
-        pass
+    def site_created_cb(self, site_id: int):
+        print(site_id)
 
-    def site_created_cb(self):
-        pass
-
-    def rate_created_cb(self):
-        pass
+    def __del__(self):
+        self.cursor.close()
 
 
 class SearchWidget(QtWidgets.QWidget):
-    def __init__(self, contents: List[str], not_here_cb: Callable[[None], None], submit_cb: Callable[[None], None]):
+    def __init__(self, ids: List[int], contents: List[str], not_here_cb: Callable[[int], None], submit_cb: Callable[[str], None]):
         super(SearchWidget, self).__init__()
 
+        self.ids = ids
         self.contents = contents
         self.submit_cb = submit_cb
 
@@ -121,75 +136,5 @@ class SearchWidget(QtWidgets.QWidget):
             e.display_dialog()
             return
 
-        self.submit_cb(self.search_led.text())
-
-
-# class AddCompanyWidget(QtWidgets.QWidget):
-#     def __init__(self, cursor: cursor):
-#         super(AddCompanyWidget, self).__init__()
-
-#         # Company name
-#         self.comp_name_led = QtWidgets.QLineEdit()
-#         self.comp_name_led.setPlaceholderText("Company Name")
-
-#         # Company Type
-#         comp_types = ["American", "Italian", "Mexican", "Ice Cream", "Other"]
-#         self.comp_type_lay = QtWidgets.QHBoxLayout()
-
-#         for comp_type in comp_types:
-#             comp_type_rb = QtWidgets.QRadioButton(comp_type)
-#             self.comp_type_lay.addWidget(comp_type_rb)
-#         self.comp_type_lay.itemAt(len(comp_types)-1).widget().setChecked(True)
-
-#         # State
-#         self.state_led = QtWidgets.QLineEdit()
-#         self.state_led.setPlaceholderText("State")
-
-#         # Street
-#         self.street_led = QtWidgets.QLineEdit()
-#         self.street_led.setPlaceholderText("Street (Optional)")
-
-#         # Address number
-#         self.addr_num_led = NumericLineEditWidget()
-#         self.addr_num_led.setPlaceholderText("Address Number (Optional)")
-
-#         # Zip code
-#         self.zip_code_led = NumericLineEditWidget()
-#         self.zip_code_led.setPlaceholderText("Zip Code")
-
-#         # Submit button
-#         self.submit_bttn = QtWidgets.QPushButton("Submit")
-
-#         # Main Layout
-#         self.add_site_lay = QtWidgets.QVBoxLayout()
-#         self.add_site_lay.addWidget(self.comp_name_led)
-#         self.add_site_lay.addLayout(self.comp_type_lay)
-#         self.add_site_lay.addWidget(self.state_led)
-#         self.add_site_lay.addWidget(self.street_led)
-#         self.add_site_lay.addWidget(self.addr_num_led)
-#         self.add_site_lay.addWidget(self.zip_code_led)
-#         self.add_site_lay.addWidget(self.submit_bttn)
-
-#         self.setLayout(self.add_site_lay)
-
-#     def submit_clicked(self):
-#         if self.comp_name_led.text() is None:
-#             raise UserInputError("Please enter a company name")
-#         if self.state_led.text() is None:
-#             raise UserInputError("Please enter a state.")
-#         if self.zip_code_led.text() is None:
-#             raise UserInputError("Please enter a zip code.")
-
-#     def does_company_exist(self, comp_name) -> bool:
-#         pass
-
-
-class NumericLineEditWidget(QtWidgets.QLineEdit):
-    def __init__(self):
-        super(NumericLineEditWidget, self).__init__()
-
-        self.textEdited.connect(self.enforce_numeric)
-
-    def enforce_numeric(self, text):
-        numerical = "".join([ch for ch in text if ch in "0123456789."])
-        self.setText(numerical)
+        search_id = self.ids[self.contents.index(self.search_led.text())]
+        self.submit_cb(search_id)
