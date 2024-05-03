@@ -4,13 +4,14 @@ from PyQt5.QtCore import Qt
 from psycopg2.extensions import connection
 import os
 from typing import List, Tuple
+from src.controller.rating import RatingWindow
 
 NUM_TOP_FOOD_ITEMS = 5
 NUM_TOP_COMPANIES = 5
 
 
 class DashboardWindow(QtWidgets.QMainWindow):
-    def __init__(self, cnx: connection):
+    def __init__(self, cnx: connection, cust_id):
         super(DashboardWindow, self).__init__()
         ui_filepath = os.path.join(
             os.path.dirname(__file__), '../ui/dashboard.ui')
@@ -18,16 +19,25 @@ class DashboardWindow(QtWidgets.QMainWindow):
 
         self.cnx = cnx
         self.cursor = self.cnx.cursor()
+        self.cust_id = cust_id
 
         self.populate_table()
 
-        # Utilities
+        self.utilLayout.addWidget(UtilityButton("Add", self.add_cb))
+        self.utilLayout.addWidget(UtilityButton("Logout", self.logout_cb))
 
-        def add_cb(): return print("ADDING")
-        def logout_cb(): return print("LOGGING OUT")
+    # Utilities
+    def add_cb(self):
+        self.rating = RatingWindow(
+            self.cnx, self.cust_id, self.finished_rating)
+        self.hide()
+        self.rating.show()
 
-        self.utilLayout.addWidget(UtilityButton("Add", add_cb))
-        self.utilLayout.addWidget(UtilityButton("Logout", logout_cb))
+    def finished_rating(self):
+        self.show()
+        self.rating.hide()
+
+    def logout_cb(self): return print("LOGGING OUT")
 
     def populate_table(self):
         # Request data from the table
