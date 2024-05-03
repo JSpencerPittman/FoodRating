@@ -11,7 +11,7 @@ NUM_TOP_COMPANIES = 5
 
 
 class DashboardWindow(QtWidgets.QMainWindow):
-    def __init__(self, cnx: connection, cust_id):
+    def __init__(self, cnx: connection, cust_id, close_cb):
         super(DashboardWindow, self).__init__()
         ui_filepath = os.path.join(
             os.path.dirname(__file__), '../ui/dashboard.ui')
@@ -20,6 +20,7 @@ class DashboardWindow(QtWidgets.QMainWindow):
         self.cnx = cnx
         self.cursor = self.cnx.cursor()
         self.cust_id = cust_id
+        self.close_cb = close_cb
 
         self.populate_table()
 
@@ -36,8 +37,17 @@ class DashboardWindow(QtWidgets.QMainWindow):
     def finished_rating(self):
         self.show()
         self.rating.close()
+        self.reset_table()
 
-    def logout_cb(self): return print("LOGGING OUT")
+    def logout_cb(self):
+        self.close_cb()
+
+    def reset_table(self):
+        self.populate_table()
+        for _ in range(NUM_TOP_FOOD_ITEMS):
+            self.topFoodItemsLayout.takeAt(0)
+        for _ in range(NUM_TOP_COMPANIES):
+            self.topCompaniesLayout.takeAt(0)
 
     def populate_table(self):
         # Request data from the table

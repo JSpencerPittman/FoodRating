@@ -9,7 +9,6 @@ from src.controller.start import StartWindow
 from src.controller.login import LoginWindow
 from src.controller.register import RegisterWindow
 from src.controller.dashboard import DashboardWindow
-from src.controller.rating import RatingWindow
 
 
 class WindowManager:
@@ -20,7 +19,6 @@ class WindowManager:
         self.start_window = StartWindow(self.start_login, self.start_register)
         self.login_window = LoginWindow(self.cnx, self.start_dashboard)
         self.register_window = RegisterWindow(self.cnx, self.start_login)
-        # self.dashboard_window = DashboardWindow(self.cursor)
 
     def start(self) -> None:
         self.start_window.show()
@@ -35,8 +33,12 @@ class WindowManager:
 
     def start_dashboard(self, wfrom: QtWidgets.QMainWindow, cust_id: int) -> None:
         wfrom.close()
-        self.dashboard_window = DashboardWindow(self.cnx, cust_id)
+        self.dashboard_window = DashboardWindow(
+            self.cnx, cust_id, self.close_cb)
         self.dashboard_window.show()
+
+    def close_cb(self):
+        self.dashboard_window.close()
 
     def __del__(self):
         print("TERMINATED CONNECTION")
