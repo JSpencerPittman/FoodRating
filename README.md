@@ -8,7 +8,7 @@ After cloning this repo you will need to setup a database.
 In pgAdmin4 create a PostgreSQL database (name must match with the one in the database.ini file described below, as it will be used for connection). In this database copy and paste the `Rating.sql` code. This will initialize all tables and functions necessary for the operation of this project.
 If you would like some sample entries to start off with, then also copy and paste `Sample.sql` to populate the database tables.
 
-Create a `database.ini` file in the `src/databases` directory. This file should look like this:
+Create a `database.ini` file in the `src/database` directory. This file should look like this:
 ```
 [postgresql]
 host=localhost
