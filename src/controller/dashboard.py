@@ -43,11 +43,11 @@ class DashboardWindow(QtWidgets.QMainWindow):
         self.close_cb()
 
     def reset_table(self):
-        self.populate_table()
         for _ in range(NUM_TOP_FOOD_ITEMS):
-            self.topFoodItemsLayout.takeAt(0)
+            self.topFoodItemsLayout.itemAt(0).widget().setParent(None)
         for _ in range(NUM_TOP_COMPANIES):
-            self.topCompaniesLayout.takeAt(0)
+            self.topCompaniesLayout.itemAt(0).widget().setParent(None)
+        self.populate_table()
 
     def populate_table(self):
         # Request data from the table
