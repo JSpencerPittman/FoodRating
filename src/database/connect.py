@@ -13,6 +13,7 @@ def connect(config):
     except (psycopg2.DatabaseError, Exception) as error:
         print(error)
 
+
 def extract_functions(sql_file):
     # Read the SQL file
     with open(sql_file, 'r') as f:
@@ -24,7 +25,7 @@ def extract_functions(sql_file):
 
     # Extracted functions will be stored in a dictionary
     extracted_functions = {}
-    
+
     # Iterate over the matches and populate the dictionary
     for match in matches:
         function_name = match[0]
@@ -35,11 +36,12 @@ def extract_functions(sql_file):
 
         # Create a function signature based on the parameters and return type
         signature = f'{function_name}({parameters}) -> {return_type}'
-        
+
         # Store the function signature and body in the dictionary
         extracted_functions[signature] = function_body
 
     return extracted_functions
+
 
 def create_python_functions(extracted_functions):
     python_functions = {}
@@ -50,7 +52,6 @@ def create_python_functions(extracted_functions):
     return python_functions
 
 
-
 if __name__ == '__main__':
     config = load_config()
     connect(config)
@@ -58,12 +59,13 @@ if __name__ == '__main__':
     functions = extract_functions(sql_file)
     python_functions = create_python_functions(functions)
     # Now you can use the extracted Python functions in your code
-    print(python_functions.keys())  # Display the names of all extracted functions
-       
-       # Sample code to call a sql function in python
-       # function_name = 'your_function_name'
-       # if function_name in python_functions:
-       # result = python_functions[function_name]()
+    # Display the names of all extracted functions
+    print(python_functions.keys())
+
+    # Sample code to call a sql function in python
+    # function_name = 'your_function_name'
+    # if function_name in python_functions:
+    # result = python_functions[function_name]()
 
 """
 import psycopg2

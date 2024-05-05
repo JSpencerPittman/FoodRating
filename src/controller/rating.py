@@ -24,7 +24,7 @@ class RatingWindow(QtWidgets.QMainWindow):
         comp_ids = [row[0] for row in companies]
         comp_names = [row[1] for row in companies]
         self.srch_comp = SearchWidget(
-            comp_ids, comp_names, self.comp_doesnt_exist, self.comp_submitted)
+            comp_ids, comp_names, self.comp_doesnt_exist, self.comp_submitted, 'Select a company')
 
         # Main Layout for this widget
         self.main_layout = self.centralWidget.layout()
@@ -54,7 +54,7 @@ class RatingWindow(QtWidgets.QMainWindow):
             locations.append(f"{row[2]}, {row[3]} {row[4]} {row[5]}")
 
         self.srch_sites = SearchWidget(
-            site_ids, locations, self.site_doesnt_exist, self.site_submitted)
+            site_ids, locations, self.site_doesnt_exist, self.site_submitted, 'Select a site')
         self.main_layout.addWidget(self.srch_sites)
 
     def comp_created_cb(self, comp_id: int):
@@ -91,7 +91,7 @@ class RatingWindow(QtWidgets.QMainWindow):
                 f"{row[2]}{f', {row[3]}' if row[3] != "NULL" else ''}")
 
         self.srch_foods = SearchWidget(
-            food_ids, food_names, self.food_doesnt_exist, self.food_submitted)
+            food_ids, food_names, self.food_doesnt_exist, self.food_submitted, 'Select a food')
         self.main_layout.addWidget(self.srch_foods)
 
     def site_created_cb(self, site_id: int):
@@ -154,12 +154,15 @@ class RatingWindow(QtWidgets.QMainWindow):
 
 
 class SearchWidget(QtWidgets.QWidget):
-    def __init__(self, ids: List[int], contents: List[str], not_here_cb: Callable[[int], None], submit_cb: Callable[[str], None]):
+    def __init__(self, ids: List[int], contents: List[str], not_here_cb: Callable[[int], None], submit_cb: Callable[[str], None], label):
         super(SearchWidget, self).__init__()
 
         self.ids = ids
         self.contents = contents
         self.submit_cb = submit_cb
+
+        # Label
+        self.label = QtWidgets.QLabel(label)
 
         # Searching line edit
         self.search_led = QtWidgets.QLineEdit()
@@ -180,6 +183,7 @@ class SearchWidget(QtWidgets.QWidget):
 
         # Layout
         self.search_lay = QtWidgets.QVBoxLayout()
+        self.search_lay.addWidget(self.label)
         self.search_lay.addWidget(self.search_led)
         self.search_lay.addWidget(self.search_lst)
         self.search_lay.addWidget(self.missing_bttn)
