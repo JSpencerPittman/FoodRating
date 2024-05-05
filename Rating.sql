@@ -156,8 +156,6 @@ $$;
 
 -- Insertion Operations
 
-DROP FUNCTION add_user;
-
 CREATE OR REPLACE FUNCTION add_user(inp_email VARCHAR, inp_psswd VARCHAR, inp_fname VARCHAR, inp_mname VARCHAR, inp_lname VARCHAR)
 	RETURNS INT 
 	LANGUAGE plpgsql
