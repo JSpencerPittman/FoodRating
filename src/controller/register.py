@@ -73,8 +73,8 @@ class RegisterWindow(QtWidgets.QMainWindow):
         return bool(self.cursor.fetchall()[0][0])
 
     def create_user(self, email: str, password: str, fname: str, mname: str, lname: str) -> None:
-        query = f"SELECT add_user('{email}','{password}','{
-            fname}','{mname}','{lname}');"
+        query = f"""SELECT add_user('{email}','{password}','{
+            fname}','{mname}','{lname}');"""
 
         self.cursor.execute(query)
 

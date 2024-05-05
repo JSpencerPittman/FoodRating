@@ -12,6 +12,9 @@ class AddCompanyWidget(QtWidgets.QWidget):
         self.cursor = self.cnx.cursor()
         self.create_cb = create_cb
 
+        # Label
+        self.label = QtWidgets.QLabel("Create a new entry for company")
+
         # Company name
         self.comp_name_led = QtWidgets.QLineEdit()
         self.comp_name_led.setPlaceholderText("Company Name")
@@ -35,6 +38,7 @@ class AddCompanyWidget(QtWidgets.QWidget):
 
         # Main Layout
         self.add_comp_lay = QtWidgets.QVBoxLayout()
+        self.add_comp_lay.addWidget(self.label)
         self.add_comp_lay.addWidget(self.comp_name_led)
         self.add_comp_lay.addWidget(self.comp_type_gb)
         self.add_comp_lay.addWidget(self.submit_bttn)
@@ -97,6 +101,9 @@ class AddSiteWidget(QtWidgets.QWidget):
         self.create_cb = create_cb
         self.comp_id = comp_id
 
+        # Label
+        self.label = QtWidgets.QLabel("Create a new entry for sites")
+
         # State
         self.state_led = QtWidgets.QLineEdit()
         self.state_led.setPlaceholderText("State")
@@ -119,6 +126,7 @@ class AddSiteWidget(QtWidgets.QWidget):
 
         # Main Layout
         self.add_site_lay = QtWidgets.QVBoxLayout()
+        self.add_site_lay.addWidget(self.label)
         self.add_site_lay.addWidget(self.state_led)
         self.add_site_lay.addWidget(self.street_led)
         self.add_site_lay.addWidget(self.addr_num_led)
@@ -193,6 +201,9 @@ class AddFoodWidget(QtWidgets.QWidget):
         self.create_cb = create_cb
         self.comp_id = comp_id
 
+        # Label
+        self.label = QtWidgets.QLabel("Create a new entry for food")
+
         # State
         self.name_led = QtWidgets.QLineEdit()
         self.name_led.setPlaceholderText("Food")
@@ -217,6 +228,7 @@ class AddFoodWidget(QtWidgets.QWidget):
 
         # Main Layout
         self.add_food_lay = QtWidgets.QVBoxLayout()
+        self.add_food_lay.addWidget(self.label)
         self.add_food_lay.addWidget(self.name_led)
         self.add_food_lay.addWidget(self.cuisines_gb)
         self.add_food_lay.addWidget(self.submit_bttn)
@@ -281,6 +293,9 @@ class AddRatingWidget(QtWidgets.QWidget):
         self.site_id = site_id
         self.cust_id = cust_id
 
+        # Label
+        self.label = QtWidgets.QLabel("Create a new entry for rating")
+
         # Price
         self.price_led = NumericLineEditWidget()
         self.price_led.setPlaceholderText("Price (Optional)")
@@ -295,6 +310,7 @@ class AddRatingWidget(QtWidgets.QWidget):
 
         # Main Layout
         self.add_rating_lay = QtWidgets.QVBoxLayout()
+        self.add_rating_lay.addWidget(self.label)
         self.add_rating_lay.addWidget(self.price_led)
         self.add_rating_lay.addWidget(self.rating_led)
         self.add_rating_lay.addWidget(self.submit_bttn)
